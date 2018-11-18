@@ -11,12 +11,11 @@ import { formatSQLResult } from '../../db/util';
  * @param {object} res - The http response object
  */
 export function createUser(req, res) {
-  const placedBy = '7c8478f9-7346-4d5d-8668-422cde77fb70';
-
-  db.query(User.create({ ...req.body, placedBy }))
+  db.query(User.create(req.body))
     .then((data) => {
       const formatted = formatSQLResult(data);
-      const token = null;
+      // TODO: implement json web tokens
+      const token = null; 
       res.status(201).json({
         status: 201,
         data: [{
