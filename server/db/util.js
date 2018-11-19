@@ -2,7 +2,8 @@ import { toUpperCase } from '../lib/util';
 
 export function formatSQLResult({ rowCount, rows, fields }, toCamelCase) {
   const object = {};
-  let i, key, value;
+  let i; let key; let
+    value;
   for (i = 0; i < rowCount; i++) {
     key = fields[i].name;
     value = rows[i];

@@ -15,19 +15,19 @@ export function createUser(req, res) {
     .then((data) => {
       const formatted = formatSQLResult(data);
       // TODO: implement json web tokens
-      const token = null; 
+      const token = null;
       res.status(201).json({
         status: 201,
         data: [{
           token,
-          user: formatted
-        }]
+          user: formatted,
+        }],
       });
     })
     .catch(() => {
       res.status(500).json({
         status: 500,
-        error: 'server error'
+        error: 'server error',
       });
     });
 }
