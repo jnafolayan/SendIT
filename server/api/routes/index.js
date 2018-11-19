@@ -15,7 +15,7 @@ export default () => {
   router.use(bodyParser.urlencoded({ extended: false }));
 
   router.route('/auth/signup')
-  	.post(UserController.createUser);
+    .post(UserController.createUser);
 
   return router;
 };

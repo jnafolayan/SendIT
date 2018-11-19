@@ -28,7 +28,7 @@ export default class User {
 
     return {
       text: `
-        INSERT INTO parcels (
+        INSERT INTO users (
           firstname,
           lastname,
           othernames,
@@ -36,9 +36,9 @@ export default class User {
           username,
           registered,
           is_admin
-        );
+        ) VALUES ($1, $2, $3, $4, $5, $6, $7);
       `,
-      values: [firstname, lastname, othernames, email, username, registered, isAdmin]
+      values: [firstname, lastname, othernames, email, username, registered, isAdmin],
     };
   }
 }

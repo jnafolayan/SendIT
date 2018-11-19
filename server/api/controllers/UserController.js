@@ -1,7 +1,7 @@
 /* eslint-disable import/prefer-default-export */
 
 import db from '../../db';
-import User from '../models/User';
+import UserModel from '../models/UserModel';
 import log from '../../lib/logger';
 import { formatSQLResult } from '../../db/util';
 
@@ -11,9 +11,10 @@ import { formatSQLResult } from '../../db/util';
  * @param {object} res - The http response object
  */
 export function createUser(req, res) {
-  db.query(User.create(req.body))
+  db.query(UserModel.create(req.body))
     .then((data) => {
-      const formatted = formatSQLResult(data);
+      log.debug(data);
+      const formatted = formatSQLResult(data, true);
       // TODO: implement json web tokens
       const token = null;
       res.status(201).json({
@@ -24,7 +25,8 @@ export function createUser(req, res) {
         }],
       });
     })
-    .catch(() => {
+    .catch((error) => {
+      log.error(error);
       res.status(500).json({
         status: 500,
         error: 'server error',
