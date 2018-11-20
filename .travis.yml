@@ -13,8 +13,8 @@ postgres:
 before-script:
   - sleep 15
   - psql -c "create database sendit;" -U postgres
-  - psql -f sql/createdb.sql -U postgres
-  - psql -f sql/create_admin.sql -U postgres
+  - psql -d sendit -f sql/createdb.sql -U postgres
+  - psql -d sendit -f sql/create_admin.sql -U postgres
 script: "npm run-script test-travis"
 # Send coverage data to Coveralls
 after_script: "cat ./coverage/lcov.info | ./node_modules/coveralls/bin/coveralls.js"
