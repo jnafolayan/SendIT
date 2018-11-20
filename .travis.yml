@@ -8,3 +8,5 @@ services:
   - postgresql
 before-script:
   - psql -c "create database sendit" -U postgres
+  - psql -f sql/createdb.sql -U postgres
+  - psql -f sql/create_admin.sql -U postgres
