@@ -6,7 +6,8 @@
   "repository": "https://github.com/jnafolayan/SendIT.git",
   "author": "jnafolayan <jnafolayan@gmail.com>",
   "scripts": {
-    "test": "NODE_ENV=test SENDIT_COVERAGE=1 mocha --timeout 10000 --require blanket --require @babel/register -R mocha-lcov-reporter | ./node_modules/coveralls/bin/coveralls.js",
+    "test": "mocha --timeout 10000 --require @babel/register",
+    "test-travis": "./node_modules/istanbul/lib/cli.js cover ./node_modules/mocha/bin/_mocha -- -R spec test",
     "test_local": "set NODE_ENV=test && mocha --timeout 10000 --require @babel/register",
     "prebuild": "rimraf build",
     "lint": "eslint server --fix",
@@ -34,9 +35,11 @@
     "blanket": "^1.2.3",
     "chai": "^4.2.0",
     "chai-http": "^4.2.0",
+    "coveralls": "^3.0.2",
     "eslint": "^5.9.0",
     "eslint-config-airbnb-base": "^13.1.0",
     "eslint-plugin-import": "^2.14.0",
+    "istanbul": "^0.4.5",
     "mocha": "^5.2.0"
   }
 }
