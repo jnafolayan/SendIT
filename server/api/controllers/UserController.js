@@ -28,6 +28,7 @@ export function createUser(req, res) {
     .then(hashPassword)
     .then(createNewUser)
     .then(fetchNewUser)
+    .then(checkIfNewUserExists) // can this ever happen?
     .then(formatResult)
     .then(finalize)
     .catch(finalizeError(res));
@@ -46,6 +47,7 @@ export function createUser(req, res) {
     if (rows.length) {
       throw createError(403, 'user exists');
     }
+    return rows;
   }
 
   function hashPassword() {
@@ -65,8 +67,15 @@ export function createUser(req, res) {
     return db.query(query);
   }
 
-  function formatResult({ rows }) {
-    return formatSQLResult(rows[0], true);
+  function checkIfNewUserExists({ rows }) {
+    if (!rows.length) {
+      throw createError(403, 'user not found');
+    }
+    return rows;
+  }
+
+  function formatResult([userDoc]) {
+    return formatSQLResult(userDoc, true);
   }
 
   function finalize(user) {
@@ -107,10 +116,11 @@ export function loginUser(req, res) {
     if (!rows.length) {
       throw createError(403, 'user not found');
     }
+    return rows;
   }
 
-  function formatResult({ rows }) {
-    return formatSQLResult(rows[0], true);
+  function formatResult([userDoc]) {
+    return formatSQLResult(userDoc, true);
   }
 
   function verifyPassword(user) {
@@ -118,6 +128,7 @@ export function loginUser(req, res) {
     if (!bcrypt.compareSync(req.body.password, user.password)) {
       throw createError(403, 'password not correct');
     }
+    return user;
   }
 
   function finalize(user) {
