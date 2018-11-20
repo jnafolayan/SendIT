@@ -5,6 +5,7 @@ import jwt from 'jsonwebtoken';
 import db from '../../db';
 import { SECRET, EXPIRY } from '../../config/jwt';
 import UserModel from '../models/UserModel';
+import * as UserSchema from '../schemas/UserSchema';
 import { 
   createError, 
   sendError, 
@@ -22,7 +23,7 @@ const HASH_COST = 10;
  * @param {Response} res - The http response object
  */
 export function createUser(req, res) {
-  validateSchema(UserModel.createSchema, req.body)
+  validateSchema(UserSchema.createSchema, req.body)
     .then(fetchUser)
     .then(checkIfExists)
     .then(hashPassword)
@@ -86,7 +87,7 @@ export function createUser(req, res) {
  * @param {Response} res - The http response object
  */
 export function loginUser(req, res) {
-  validateSchema(UserModel.loginSchema, req.body)
+  validateSchema(UserSchema.loginSchema, req.body)
     .then(fetchUser)
     .then(checkIfExists)
     .then(formatResult)
