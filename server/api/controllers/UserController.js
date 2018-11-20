@@ -36,7 +36,6 @@ export function createUser(req, res) {
             return db.query(getUser)
               .then(({ rows }) => {
                 const user = formatSQLResult(rows[0], true);
-                // TODO: implement json web tokens
                 const token = jwt.sign({ id: user.refId }, SECRET, {
                   expiresIn: EXPIRY,
                 });
@@ -47,6 +46,37 @@ export function createUser(req, res) {
               });
           })
           .catch(() => createError(res, 500, 'server error'));
+      }
+    })
+    .catch(() => createError(res, 500, 'server error'));
+}
+
+/**
+ * Sign a User in to his/her account
+ * @param {Request} req - The http request object
+ * @param {Response} res - The http response object
+ */
+export function loginUser(req, res) {
+  const hash = bcrypt.hashSync(req.body.password, HASH_COST);
+  const fetchExisting = UserModel.fetch({
+    where: { 
+      email: req.body.username, 
+      password: hash 
+    }
+  });
+  db.query(fetchExisting)
+    .then(({ rows }) => {
+      if (!rows.length) {
+        createError(res, 403, 'user not found');
+      } else {
+        const user = formatSQLResult(rows[0], true);
+        const token = jwt.sign({ id: user.refId }, SECRET, {
+          expiresIn: EXPIRY,
+        });
+        createSuccess(res, 200, [{
+          token,
+          user,
+        }]);
       }
     })
     .catch(() => createError(res, 500, 'server error'));
