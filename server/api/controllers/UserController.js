@@ -1,35 +1,51 @@
 /* eslint-disable import/prefer-default-export */
 
+import bcrypt from 'bcrypt';
 import db from '../../db';
-import UserModel from '../models/UserModel';
 import log from '../../lib/logger';
+import UserModel from '../models/UserModel';
+import { createError, createSuccess } from '../../lib/validations';
 import { formatSQLResult } from '../../db/util';
+
+const HASH_COST = 10;
 
 /**
  * Create a User from a set of details
- * @param {object} req - The http request object
- * @param {object} res - The http response object
+ * @param {Request} req - The http request object
+ * @param {Response} res - The http response object
  */
 export function createUser(req, res) {
-  db.query(UserModel.create(req.body))
-    .then((data) => {
-      log.debug(data);
-      const formatted = formatSQLResult(data, true);
-      // TODO: implement json web tokens
-      const token = null;
-      res.status(201).json({
-        status: 201,
-        data: [{
-          token,
-          user: formatted,
-        }],
-      });
+  // check if user exists already
+  const fetchExisting = UserModel.fetch({
+    where: { email: req.body.email },
+    or: { username: req.body.username },
+  });
+  db.query(fetchExisting)
+    .then((doc) => {
+      if (doc.rows.length) {
+        createError(res, 403, 'user exists');
+      } else {
+        const password = bcrypt.hashSync(req.body.password, HASH_COST);
+        db.query(UserModel.create({ ...req.body, password }))
+          .then(() => {
+            // fetch the user data
+            const getUser = UserModel.fetch({
+              where: { username: req.body.username },
+            });
+            return db.query(getUser)
+              .then(({ rows }) => {
+                const formatted = formatSQLResult(rows[0], true);
+                log.debug(formatted);
+                // TODO: implement json web tokens
+                const token = null;
+                createSuccess(res, 201, [{
+                  token,
+                  user: formatted,
+                }]);
+              });
+          })
+          .catch(() => createError(res, 500, 'server error'));
+      }
     })
-    .catch((error) => {
-      log.error(error);
-      res.status(500).json({
-        status: 500,
-        error: 'server error',
-      });
-    });
+    .catch(() => createError(res, 500, 'server error'));
 }
