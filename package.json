@@ -7,7 +7,7 @@
   "author": "jnafolayan <jnafolayan@gmail.com>",
   "scripts": {
     "test": "mocha --timeout 10000 --require @babel/register",
-    "test-travis": "babel test -d test_build && ./node_modules/istanbul/lib/cli.js cover ./node_modules/mocha/bin/_mocha -- -R spec --require @babel/register test_build",
+    "test-travis": "mkdir test-travis && babel test -d test-travis/test && babel server -d test-travis/server && ./node_modules/istanbul/lib/cli.js cover ./node_modules/mocha/bin/_mocha -- -R spec test-travis/test",
     "test_local": "set NODE_ENV=test && mocha --timeout 10000 --require @babel/register",
     "prebuild": "rimraf build",
     "lint": "eslint server --fix",
