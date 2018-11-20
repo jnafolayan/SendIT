@@ -18,3 +18,5 @@ app.use((error, req, res, next) => {
 
 const server = http.createServer(app);
 server.listen(apiConfig.PORT, () => log.debug(`The server is running on port ${apiConfig.PORT}`));
+
+export default server;
