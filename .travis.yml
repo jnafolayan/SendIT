@@ -3,7 +3,7 @@ node_js:
   - "lts/*"
 cache: yarn
 env:
-  - PGUSER=postgres PGHOST=localhost PGPASSWORD=admin PGDATABASE=mydb PGPORT=5432
+  - PGUSER=postgres PGHOST=localhost PGPASSWORD=admin PGDATABASE=sendit PGPORT=5432
 services:
   - postgresql
 before-script:
