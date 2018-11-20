@@ -3,13 +3,19 @@ node_js:
   - "lts/*"
 cache: yarn
 env:
-  - PGUSER=postgres PGHOST=localhost PGPASSWORD=admin PGDATABASE=sendit PGPORT=5432
+  global:
+    - PGUSER=postgres PGPASSWORD=admin PGDATABASE=sendit PGPORT=5432
 services:
   - postgresql
+postgres:
+  adapter: postgresql
+  database: sendit
+  username: postgres
 before-script:
-  - psql -c "create database sendit" -U postgres
+  - psql -c "create database sendit;" -U postgres
   - psql -f sql/createdb.sql -U postgres
   - psql -f sql/create_admin.sql -U postgres
+  - rake db:migrate
 script: "npm run-script test-travis"
 # Send coverage data to Coveralls
 after_script: "cat ./coverage/lcov.info | ./node_modules/coveralls/bin/coveralls.js"
