@@ -4,7 +4,7 @@ node_js:
 cache: yarn
 env:
   global:
-    - PGUSER=postgres PGPASSWORD=admin PGDATABASE=sendit PGPORT=5432
+    - PGUSER=postgres PGHOST=localhost PGPASSWORD=admin PGDATABASE=sendit PGPORT=5432
 services:
   - postgresql
 postgres:
