@@ -12,7 +12,11 @@ postgres:
   database: sendit
   username: postgres
 addons:
-  postgresql: "10.5"
+  postgresql: "10"
+  apt:
+    packages:
+    - postgresql-10
+    - postgresql-client-10
 before-script:
   - psql -c "create database sendit;" -U postgres
   - psql -f sql/createdb.sql -U postgres
