@@ -1,8 +1,9 @@
 /* eslint-disable import/prefer-default-export */
 
 import bcrypt from 'bcrypt';
+import jwt from 'jsonwebtoken';
 import db from '../../db';
-import log from '../../lib/logger';
+import { SECRET, EXPIRY } from '../../config/jwt';
 import UserModel from '../models/UserModel';
 import { createError, createSuccess } from '../../lib/validations';
 import { formatSQLResult } from '../../db/util';
@@ -34,13 +35,14 @@ export function createUser(req, res) {
             });
             return db.query(getUser)
               .then(({ rows }) => {
-                const formatted = formatSQLResult(rows[0], true);
-                log.debug(formatted);
+                const user = formatSQLResult(rows[0], true);
                 // TODO: implement json web tokens
-                const token = null;
+                const token = jwt.sign({ id: user.refId }, SECRET, {
+                  expiresIn: EXPIRY,
+                });
                 createSuccess(res, 201, [{
                   token,
-                  user: formatted,
+                  user,
                 }]);
               });
           })
