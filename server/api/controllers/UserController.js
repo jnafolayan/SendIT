@@ -1,4 +1,4 @@
-/* eslint-disable import/prefer-default-export */
+/* eslint-disable no-use-before-define */
 
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
@@ -6,12 +6,11 @@ import db from '../../db';
 import { SECRET, EXPIRY } from '../../config/jwt';
 import UserModel from '../models/UserModel';
 import * as UserSchema from '../schemas/UserSchema';
-import { 
-  createError, 
-  sendError, 
-  sendSuccess, 
-  finalizeError, 
-  validateSchema 
+import {
+  createError,
+  sendSuccess,
+  finalizeError,
+  validateSchema,
 } from '../../lib/validations';
 import { formatSQLResult } from '../../db/util';
 
@@ -31,14 +30,14 @@ export function createUser(req, res) {
     .then(fetchNewUser)
     .then(formatResult)
     .then(finalize)
-    .catch(finalizeError);
+    .catch(finalizeError(res));
 
-  function fetchUser(body) { 
+  function fetchUser(body) {
     req.body = body;
     // check if user exists already
     const query = UserModel.fetch({
       where: { email: body.email },
-      or: { username: body.username }
+      or: { username: body.username },
     });
     return db.query(query);
   }
@@ -53,9 +52,9 @@ export function createUser(req, res) {
     const password = bcrypt.hashSync(req.body.password, HASH_COST);
     return password;
   }
-  
+
   function createNewUser(password) {
-    return db.query(UserModel.create({ ...req.body, password }))
+    return db.query(UserModel.create({ ...req.body, password }));
   }
 
   function fetchNewUser() {
@@ -69,7 +68,7 @@ export function createUser(req, res) {
   function formatResult({ rows }) {
     return formatSQLResult(rows[0], true);
   }
-   
+
   function finalize(user) {
     const token = jwt.sign({ id: user.refId }, SECRET, {
       expiresIn: EXPIRY,
@@ -93,17 +92,17 @@ export function loginUser(req, res) {
     .then(formatResult)
     .then(verifyPassword)
     .then(finalize)
-    .catch(finalizeError);
+    .catch(finalizeError(res));
 
   function fetchUser(body) {
     const query = UserModel.fetch({
-      where: { 
-        username: body.username
-      }
+      where: {
+        username: body.username,
+      },
     });
     return db.query(query);
   }
-    
+
   function checkIfExists({ rows }) {
     if (!rows.length) {
       throw createError(403, 'user not found');
