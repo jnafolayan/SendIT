@@ -10,12 +10,6 @@ postgres:
   adapter: postgresql
   database: sendit
   username: postgres
-addons:
-  postgresql: "10"
-  apt:
-    packages:
-    - postgresql-10
-    - postgresql-client-10
 before-script:
   - sleep 15
   - psql -c "create database sendit;" -U postgres
