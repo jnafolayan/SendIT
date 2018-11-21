@@ -14,6 +14,13 @@ import {
 } from '../../lib/validations';
 import { formatSQLResult } from '../../db/util';
 
+const parcelSQLReplacement = {
+  fromLoc: 'from',
+  toLoc: 'to',
+  currentLoc: 'currentLocation',
+};
+
+
 /**
  * Create a Parcel from a set of details
  *
@@ -99,10 +106,65 @@ export function fetchParcels(req, res) {
 
   function formatResult({ rows }) {
     return _(rows)
-      .map(row => formatSQLResult(row, true));
+      .map(row => formatSQLResult(row, true, parcelSQLReplacement));
   }
 
   function finalize(rows) {
     sendSuccess(res, 200, rows);
+  }
+}
+
+/**
+ * Fetches a single Parcel
+ *
+ * @param {Request} req - The http request object
+ * @param {Response} res - The http response object
+ */
+export function fetchParcel(req, res) {
+  validateSchema(ParcelSchema.fetchSchema, req.params)
+    .then(fetchUser)
+    .then(checkIfUserExists)
+    .then(fetchSingle)
+    .then(checkIfParcelExists)
+    .then(formatResult)
+    .then(finalize)
+    .catch(finalizeError(res));
+
+  function fetchUser() {
+    // check if user exists already
+    const query = UserModel.fetchByID(req.user.id);
+    return db.query(query);
+  }
+
+  function checkIfUserExists({ rows }) {
+    if (!rows.length) {
+      throw createError(403, 'forbidden');
+    }
+    return rows;
+  }
+
+  function fetchSingle() {
+    const query = ParcelModel.fetch({
+      where: { id: req.params.parcelID },
+      orderBy: req.query.orderBy || null,
+      offset: req.query.offset || null,
+      limit: req.query.limit || null,
+    });
+    return db.query(query);
+  }
+
+  function checkIfParcelExists({ rows }) {
+    if (!rows.length) {
+      throw createError(403, 'parcel not found');
+    }
+    return rows;
+  }
+
+  function formatResult([parcelDoc]) {
+    return formatSQLResult(parcelDoc, true, parcelSQLReplacement);
+  }
+
+  function finalize(parcel) {
+    sendSuccess(res, 200, parcel);
   }
 }

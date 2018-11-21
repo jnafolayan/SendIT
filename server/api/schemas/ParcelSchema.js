@@ -6,3 +6,7 @@ export const createSchema = {
   from: String,
   to: String,
 };
+
+export const fetchSchema = {
+  parcelID: String, // URL address are strings
+};
