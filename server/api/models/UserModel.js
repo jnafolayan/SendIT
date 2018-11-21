@@ -8,7 +8,7 @@ export default class UserModel {
   /**
    * Inserts a new User into the database
    * @static
-   * @param {object} props - properties of the parcel
+   * @param {object} props - properties of the User
    * @param {string} props.firstname - the furst name of the User
    * @param {string} props.lastname - the last name of the User
    * @param {string} props.othernames - other names the User has
@@ -51,18 +51,19 @@ export default class UserModel {
    * Fetches all Users in the database that match the filter.
    * @static
    * @param {object} filter - properties of the User
-   * @param {string} filter.fields - fields to pluck from result
+   * @param {object} filter.where - fields to look into
+   * @param {object} filter.or - fields to look into
+   * @param {string} filter.orderBy - what to sort with
    * @return {object} - The query object
    */
   static fetch(filter) {
     const {
-      fields,
       where,
       or,
       orderBy,
     } = filter;
 
-    let query = `SELECT ${fields || '*'} FROM users`;
+    let query = `SELECT * FROM users`;
 
     if (where) {
       const clauses = _.entries(where)

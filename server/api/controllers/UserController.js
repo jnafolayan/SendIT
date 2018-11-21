@@ -3,6 +3,7 @@
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import db from '../../db';
+import UniqueID from '../../services/UniqueID';
 import { SECRET, EXPIRY } from '../../config/jwt';
 import UserModel from '../models/UserModel';
 import * as UserSchema from '../schemas/UserSchema';
@@ -25,6 +26,7 @@ export function createUser(req, res) {
   validateSchema(UserSchema.createSchema, req.body)
     .then(fetchUser)
     .then(checkIfExists)
+    .then(generateID)
     .then(hashPassword)
     .then(createNewUser)
     .then(fetchNewUser)
@@ -50,13 +52,17 @@ export function createUser(req, res) {
     return rows;
   }
 
-  function hashPassword() {
+  function hashPassword(id) {
     const password = bcrypt.hashSync(req.body.password, HASH_COST);
-    return password;
+    return [id, password];
   }
 
-  function createNewUser(password) {
-    return db.query(UserModel.create({ ...req.body, password }));
+  function generateID() {
+    return UniqueID.generate('users');
+  }
+
+  function createNewUser([id, password]) {
+    return db.query(UserModel.create({ ...req.body, id, password }));
   }
 
   function fetchNewUser() {
@@ -79,7 +85,7 @@ export function createUser(req, res) {
   }
 
   function finalize(user) {
-    const token = jwt.sign({ id: user.refId }, SECRET, {
+    const token = jwt.sign({ id: user.id }, SECRET, {
       expiresIn: EXPIRY,
     });
     sendSuccess(res, 201, [{
@@ -132,7 +138,7 @@ export function loginUser(req, res) {
   }
 
   function finalize(user) {
-    const token = jwt.sign({ id: user.refId }, SECRET, {
+    const token = jwt.sign({ id: user.id }, SECRET, {
       expiresIn: EXPIRY,
     });
     sendSuccess(res, 200, [{
