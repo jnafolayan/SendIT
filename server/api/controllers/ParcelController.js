@@ -1,8 +1,7 @@
-/* eslint-disable no-use-before-define */
+/* eslint-disable no-use-before-define, import/prefer-default-export */
 
 import db from '../../db';
 import UniqueID from '../../services/UniqueID';
-import { SECRET, EXPIRY } from '../../config/jwt';
 import UserModel from '../models/UserModel';
 import ParcelModel from '../models/ParcelModel';
 import * as ParcelSchema from '../schemas/ParcelSchema';
@@ -13,8 +12,6 @@ import {
   validateSchema,
 } from '../../lib/validations';
 import { formatSQLResult } from '../../db/util';
-
-const HASH_COST = 10;
 
 /**
  * Create a Parcel from a set of details

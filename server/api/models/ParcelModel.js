@@ -44,9 +44,10 @@ export default class ParcelModel {
           from_loc,
           to_loc,
           current_loc
-        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9);
+        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10);
       `,
       values: [
+        id,
         placedBy,
         weight,
         weightmetric,

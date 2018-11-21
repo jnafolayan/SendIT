@@ -60,7 +60,7 @@ export function createUser(req, res) {
     const password = bcrypt.hashSync(req.body.password, HASH_COST);
     return [id, password];
   }
-  
+
   function createNewUser([id, password]) {
     return db.query(UserModel.create({ ...req.body, id, password }));
   }
