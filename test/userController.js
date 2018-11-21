@@ -17,6 +17,7 @@ describe('User controller', () => {
     username: randomUsername,
     password: 'helloworld'
   };
+  let token, userID;
 
   describe('POST /auth/signup', () => {
     it('should create a new user', done => {
@@ -24,6 +25,9 @@ describe('User controller', () => {
         .post('/api/v1/auth/signup')
         .send(userInfo)
         .end((err, res) => {
+          if (err) {
+            return done(err);
+          }
           expect(res.status).to.equal(201);
           expect(res.body).to.be.a('object');
 
@@ -33,6 +37,8 @@ describe('User controller', () => {
           expect(body.data[0]).to.have.property('token').be.a('string');
           expect(body.data[0]).to.have.property('user').to.have.property('id');
 
+          token = body.data[0].token;
+          userID = body.data[0].user.id;
           done();
         });
     });
@@ -41,6 +47,9 @@ describe('User controller', () => {
         .post('/api/v1/auth/signup')
         .send(userInfo)
         .end((err, res) => {
+          if (err) {
+            return done(err);
+          }
           expect(res.status).to.equal(403);
           expect(res.body).to.be.a('object');
 
@@ -62,6 +71,10 @@ describe('User controller', () => {
           password: userInfo.password,
         })
         .end((err, res) => {
+          if (err) {
+            return done(err);
+          }
+
           expect(res.status).to.equal(200);
           expect(res.body).to.be.a('object');
 
@@ -71,6 +84,7 @@ describe('User controller', () => {
           expect(body.data[0]).to.have.property('token').be.a('string');
           expect(body.data[0]).to.have.property('user').to.have.property('id');
 
+          token = body.data[0].token;
           done();
         });
     });
@@ -82,6 +96,48 @@ describe('User controller', () => {
           password: 'baduser',
         })
         .end((err, res) => {
+          if (err) {
+            return done(err);
+          }
+          expect(res.status).to.equal(404);
+          expect(res.body).to.be.a('object');
+
+          const body = res.body;
+          expect(body).to.have.property('status').be.a('number');
+          expect(body).to.have.property('error').be.a('string');
+
+          done();
+        });
+    });
+  });
+
+  describe('GET /users/:userID/parcels', () => {
+    it('should fetch all parcel orders made by a user', done => {
+      request(app)
+        .get(`/api/v1/users/${+userID}/parcels`)
+        .set('x-access-token', token)
+        .end((err, res) => {
+          if (err) {
+            return done(err);
+          }
+
+          expect(res.status).to.equal(200);
+          expect(res.body).to.be.a('object');
+
+          const body = res.body;
+          expect(body).to.have.property('data').be.a('array');
+
+          done();
+        });
+    });
+    it('should not fetch all parcel orders if req is made by another user', done => {
+      request(app)
+        .get(`/api/v1/users/12345678/parcels`)
+        .set('x-access-token', token)
+        .end((err, res) => {
+          if (err) {
+            return done(err);
+          }
           expect(res.status).to.equal(403);
           expect(res.body).to.be.a('object');
 

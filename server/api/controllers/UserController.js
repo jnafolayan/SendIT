@@ -117,7 +117,6 @@ export function loginUser(req, res) {
     const query = UserModel.fetch({
       where: {
         username: body.username,
-        password: body.password,
       },
     });
     return db.query(query);
@@ -171,12 +170,12 @@ export function fetchParcels(req, res) {
   function fetchUser(params) {
     // ensure that the owner of the parcels is the only one allowed
     // to view them
-    if (params.userID !== req.user.id) {
+    if (+params.userID !== req.user.id) {
       throw createError(403, 'user not valid');
     }
 
     const query = UserModel.fetch({
-      where: { id: params.userID },
+      where: { id: +params.userID },
     });
 
     return db.query(query);
@@ -191,7 +190,7 @@ export function fetchParcels(req, res) {
 
   function fetchSentParcels() {
     const query = ParcelModel.fetch({
-      where: { placedBy: req.params.userID },
+      where: { placed_by: +req.params.userID },
     });
 
     return db.query(query);
