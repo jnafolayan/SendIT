@@ -36,5 +36,8 @@ export default () => {
   router.route('/parcels/:parcelID/cancel')
     .patch(verifyToken, ParcelController.cancelParcel);
 
+  router.route('/parcels/:parcelID/destination')
+    .patch(verifyToken, ParcelController.changeDestination);
+
   return router;
 };

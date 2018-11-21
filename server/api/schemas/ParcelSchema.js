@@ -7,10 +7,10 @@ export const createSchema = {
   to: String,
 };
 
-export const fetchSchema = {
+export const paramSchema = {
   parcelID: String, // URL address are strings
 };
 
-export const cancelSchema = {
-  parcelID: String, // URL address are strings
+export const changeDestSchema = {
+  to: String,
 };
