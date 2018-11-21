@@ -22,7 +22,7 @@ export default class UniqueID {
             if (rows.length) {
               gen();
             } else {
-              resolve(id);
+              resolve(+id);
             }
           })
           .catch(() => {

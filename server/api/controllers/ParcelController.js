@@ -11,7 +11,6 @@ import {
   finalizeError,
   validateSchema,
 } from '../../lib/validations';
-import { formatSQLResult } from '../../db/util';
 
 /**
  * Create a Parcel from a set of details
@@ -25,14 +24,13 @@ export function createParcel(req, res) {
     .then(checkIfExists)
     .then(generateID)
     .then(createNewParcel)
-    .then(formatResult)
     .then(finalize)
     .catch(finalizeError(res));
 
   function fetchUser(body) {
     req.body = body;
     // check if user exists already
-    const query = UserModel.fetchById(req.user.id);
+    const query = UserModel.fetchByID(req.user.id);
     return db.query(query);
   }
 
@@ -49,14 +47,10 @@ export function createParcel(req, res) {
 
   function createNewParcel(id) {
     const query = ParcelModel.create({ ...req.body, id, placedBy: req.user.id });
-    return db.query(query);
+    return db.query(query).then(() => id);
   }
 
-  function formatResult([parcelDoc]) {
-    return formatSQLResult(parcelDoc, true);
-  }
-
-  function finalize({ id }) {
+  function finalize(id) {
     sendSuccess(res, 201, [{
       id,
       message: 'order created',

@@ -1,4 +1,5 @@
 import _ from 'lodash';
+import log from './logger';
 
 /**
  * Sends an error response to the client.
@@ -50,6 +51,7 @@ export function finalizeError(res) {
     if (error.custom) {
       sendError(res, error.status, error.message);
     } else {
+      log.error(error);
       sendError(res, 500, 'server error');
     }
   };

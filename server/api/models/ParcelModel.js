@@ -27,7 +27,7 @@ export default class ParcelModel {
     } = props;
 
     const sentOn = new Date().toISOString();
-    const deliveredOn = null;
+    const deliveredOn = sentOn;
     const status = 'placed';
     const currentLocation = from;
 

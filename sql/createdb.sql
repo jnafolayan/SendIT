@@ -18,7 +18,7 @@ CREATE TABLE parcels (
   weight REAL NOT NULL,
   weightmetric VARCHAR (5) NOT NULL,
   sent_on DATE DEFAULT CURRENT_DATE,
-  delivered_on DATE,
+  delivered_on DATE DEFAULT CURRENT_DATE,
   status VARCHAR (20) NOT NULL,
   from_loc VARCHAR (355) NOT NULL,
   to_loc VARCHAR (355) NOT NULL,
