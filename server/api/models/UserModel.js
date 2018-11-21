@@ -9,6 +9,7 @@ export default class UserModel {
    * Inserts a new User into the database
    * @static
    * @param {object} props - properties of the User
+   * @param {number} props.id - the id of the User
    * @param {string} props.firstname - the furst name of the User
    * @param {string} props.lastname - the last name of the User
    * @param {string} props.othernames - other names the User has
@@ -19,6 +20,7 @@ export default class UserModel {
    */
   static create(props) {
     const {
+      id,
       firstname,
       lastname,
       othernames,
@@ -33,6 +35,7 @@ export default class UserModel {
     return {
       text: `
         INSERT INTO users (
+          id,
           firstname,
           lastname,
           othernames,
@@ -41,9 +44,9 @@ export default class UserModel {
           password,
           registered,
           is_admin
-        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8);
+        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9);
       `,
-      values: [firstname, lastname, othernames, email, username, password, registered, isAdmin],
+      values: [id, firstname, lastname, othernames, email, username, password, registered, isAdmin],
     };
   }
 
@@ -63,7 +66,7 @@ export default class UserModel {
       orderBy,
     } = filter;
 
-    let query = `SELECT * FROM users`;
+    let query = 'SELECT * FROM users';
 
     if (where) {
       const clauses = _.entries(where)
@@ -105,14 +108,14 @@ export default class UserModel {
   }
 
   /**
-   * Fetches a Users in the database with the specified refid
+   * Fetches a Users in the database with the specified id
    * @static
-   * @param {object} id - the refid of the User
+   * @param {object} id - the id of the User
    * @return {object} - The query object
    */
-  static fetchByRefID(refid) {
+  static fetchByID(id) {
     return UserModel.fetch({
-      where: { ref_id: refid },
+      where: { id },
     });
   }
 }

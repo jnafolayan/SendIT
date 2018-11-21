@@ -52,15 +52,15 @@ export function createUser(req, res) {
     return rows;
   }
 
-  function hashPassword(id) {
-    const password = bcrypt.hashSync(req.body.password, HASH_COST);
-    return [id, password];
-  }
-
   function generateID() {
     return UniqueID.generate('users');
   }
 
+  function hashPassword(id) {
+    const password = bcrypt.hashSync(req.body.password, HASH_COST);
+    return [id, password];
+  }
+  
   function createNewUser([id, password]) {
     return db.query(UserModel.create({ ...req.body, id, password }));
   }

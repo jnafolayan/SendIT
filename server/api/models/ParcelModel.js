@@ -9,7 +9,7 @@ export default class ParcelModel {
    * Inserts a new Parcel into the database
    * @static
    * @param {object} props - properties of the Parcel
-   * @param {string} props.placedBy - the id of the User sending it
+   * @param {string} props.placedBy - the id of the Parcel sending it
    * @param {string} props.weight - the weight of the Parcel
    * @param {string} props.weightmetric - the unit of measurement of the weight
    * @param {string} props.from - the place to pickup the Parcel
@@ -18,9 +18,10 @@ export default class ParcelModel {
    */
   static create(props) {
     const {
+      id,
       placedBy,
       weight,
-      weightmetric
+      weightmetric,
       from,
       to,
     } = props;
@@ -33,6 +34,7 @@ export default class ParcelModel {
     return {
       text: `
         INSERT INTO parcels (
+          id,
           placed_by,
           weight,
           weightmetric,
@@ -44,7 +46,17 @@ export default class ParcelModel {
           current_loc
         ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9);
       `,
-      values: [placedBy, weight, weightmetric, sentOn, deliveredOn, status, from, to, currentLocation],
+      values: [
+        placedBy,
+        weight,
+        weightmetric,
+        sentOn,
+        deliveredOn,
+        status,
+        from,
+        to,
+        currentLocation,
+      ],
     };
   }
 
@@ -64,7 +76,7 @@ export default class ParcelModel {
       orderBy,
     } = filter;
 
-    let query = `SELECT * FROM parcels`;
+    let query = 'SELECT * FROM parcels';
 
     if (where) {
       const clauses = _.entries(where)
@@ -103,5 +115,18 @@ export default class ParcelModel {
     return {
       text: `${query};`,
     };
+  }
+
+  /**
+   * Fetches a Parcel in the database with the specified id
+   *
+   * @static
+   * @param {object} id - the id of the Parcel
+   * @return {object} - The query object
+   */
+  static fetchByID(id) {
+    return ParcelModel.fetch({
+      where: { id },
+    });
   }
 }
