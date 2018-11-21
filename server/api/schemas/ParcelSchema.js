@@ -10,3 +10,7 @@ export const createSchema = {
 export const fetchSchema = {
   parcelID: String, // URL address are strings
 };
+
+export const cancelSchema = {
+  parcelID: String, // URL address are strings
+};

@@ -23,14 +23,14 @@ import { formatSQLResult } from '../../db/util';
  */
 export function createParcel(req, res) {
   validateSchema(ParcelSchema.createSchema, req.body)
-    .then(fetchUser)
+    .then(grabUser)
     .then(checkIfExists)
     .then(generateID)
     .then(createNewParcel)
     .then(finalize)
     .catch(finalizeError(res));
 
-  function fetchUser(body) {
+  function grabUser(body) {
     req.body = body;
     // check if user exists already
     const query = UserModel.fetchByID(req.user.id);
@@ -69,14 +69,14 @@ export function createParcel(req, res) {
  * @param {Response} res - The http response object
  */
 export function fetchParcels(req, res) {
-  fetchUser()
+  grabUser()
     .then(checkIfExists)
-    .then(fetchAll)
+    .then(grabAll)
     .then(formatResult)
     .then(finalize)
     .catch(finalizeError(res));
 
-  function fetchUser() {
+  function grabUser() {
     // check if user exists already
     const query = UserModel.fetchByID(req.user.id);
     return db.query(query);
@@ -89,7 +89,7 @@ export function fetchParcels(req, res) {
     return rows;
   }
 
-  function fetchAll() {
+  function grabAll() {
     const query = ParcelModel.fetch({
       orderBy: req.query.orderBy || null,
       offset: req.query.offset || null,
@@ -116,15 +116,15 @@ export function fetchParcels(req, res) {
  */
 export function fetchParcel(req, res) {
   validateSchema(ParcelSchema.fetchSchema, req.params)
-    .then(fetchUser)
+    .then(grabUser)
     .then(checkIfUserExists)
-    .then(fetchSingle)
+    .then(grabParcel)
     .then(checkIfParcelExists)
     .then(formatResult)
     .then(finalize)
     .catch(finalizeError(res));
 
-  function fetchUser() {
+  function grabUser() {
     // check if user exists already
     const query = UserModel.fetchByID(req.user.id);
     return db.query(query);
@@ -137,7 +137,7 @@ export function fetchParcel(req, res) {
     return rows;
   }
 
-  function fetchSingle() {
+  function grabParcel() {
     const query = ParcelModel.fetch({
       where: { id: +req.params.parcelID },
       orderBy: req.query.orderBy || null,
@@ -160,5 +160,56 @@ export function fetchParcel(req, res) {
 
   function finalize(parcel) {
     sendSuccess(res, 200, parcel);
+  }
+}
+
+/**
+ * Cancels a single Parcel
+ *
+ * @param {Request} req - The http request object
+ * @param {Response} res - The http response object
+ */
+export function cancelParcel(req, res) {
+  validateSchema(ParcelSchema.cancelSchema, req.params)
+    .then(grabParcel)
+    .then(checkIfExists)
+    .then(cancelParcelOrder)
+    .then(finalize)
+    .catch(finalizeError(res));
+
+  function grabParcel() {
+    const query = ParcelModel.fetch({
+      where: {
+        id: +req.params.parcelID,
+        placed_by: +req.user.id,
+      },
+    });
+
+    return db.query(query);
+  }
+
+  function checkIfExists({ rows }) {
+    if (!rows.length) {
+      throw createError(404, 'parcel not found');
+    }
+    return rows;
+  }
+
+  function cancelParcelOrder() {
+    const query = ParcelModel.delete({
+      where: {
+        id: +req.params.parcelID,
+        placed_by: +req.user.id,
+      },
+    });
+
+    return db.query(query);
+  }
+
+  function finalize() {
+    sendSuccess(res, 200, [{
+      id: +req.params.parcelID,
+      message: 'order canceled',
+    }]);
   }
 }
