@@ -1,4 +1,4 @@
-/* eslint-disable no-use-before-define, import/prefer-default-export */
+/* eslint-disable no-use-before-define */
 
 import _ from 'lodash';
 import db from '../../db';
@@ -13,12 +13,6 @@ import {
   validateSchema,
 } from '../../lib/validations';
 import { formatSQLResult } from '../../db/util';
-
-const parcelSQLReplacement = {
-  fromLoc: 'from',
-  toLoc: 'to',
-  currentLoc: 'currentLocation',
-};
 
 
 /**
@@ -106,7 +100,7 @@ export function fetchParcels(req, res) {
 
   function formatResult({ rows }) {
     return _(rows)
-      .map(row => formatSQLResult(row, true, parcelSQLReplacement));
+      .map(row => formatSQLResult(row, true, ParcelModel.SQLReplacement));
   }
 
   function finalize(rows) {
@@ -145,7 +139,7 @@ export function fetchParcel(req, res) {
 
   function fetchSingle() {
     const query = ParcelModel.fetch({
-      where: { id: req.params.parcelID },
+      where: { id: +req.params.parcelID },
       orderBy: req.query.orderBy || null,
       offset: req.query.offset || null,
       limit: req.query.limit || null,
@@ -161,7 +155,7 @@ export function fetchParcel(req, res) {
   }
 
   function formatResult([parcelDoc]) {
-    return formatSQLResult(parcelDoc, true, parcelSQLReplacement);
+    return formatSQLResult(parcelDoc, true, ParcelModel.SQLReplacement);
   }
 
   function finalize(parcel) {

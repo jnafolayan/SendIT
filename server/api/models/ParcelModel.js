@@ -130,4 +130,17 @@ export default class ParcelModel {
       where: { id },
     });
   }
+
+  /**
+   * The replacement for snake_cased fields to camelCase.
+   *
+   * @static
+   */
+  static get SQLReplacement() {
+    return {
+      fromLoc: 'from',
+      toLoc: 'to',
+      currentLoc: 'currentLocation',
+    };
+  }
 }
