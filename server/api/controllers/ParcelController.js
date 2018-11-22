@@ -167,7 +167,7 @@ export function fetchParcel(req, res) {
   }
 
   function finalize(parcel) {
-    sendSuccess(res, 200, parcel);
+    sendSuccess(res, 200, [parcel]);
   }
 }
 
@@ -307,7 +307,7 @@ export function changeStatus(req, res) {
     .then(abortIfNotAdmin)
     .then(grabParcel)
     .then(checkIfExists)
-    .then(changeDest)
+    .then(changeStat)
     .then(finalize)
     .catch(finalizeError(res));
 
@@ -334,7 +334,7 @@ export function changeStatus(req, res) {
   function grabParcel() {
     const query = ParcelModel.fetch({
       where: {
-        id: +req.params.parcelID
+        id: +req.params.parcelID,
       },
     });
 
@@ -383,7 +383,7 @@ export function changeCurrentLocation(req, res) {
     .then(abortIfNotAdmin)
     .then(grabParcel)
     .then(checkIfExists)
-    .then(changeDest)
+    .then(changeLoc)
     .then(finalize)
     .catch(finalizeError(res));
 
@@ -410,7 +410,7 @@ export function changeCurrentLocation(req, res) {
   function grabParcel() {
     const query = ParcelModel.fetch({
       where: {
-        id: +req.params.parcelID
+        id: +req.params.parcelID,
       },
     });
 

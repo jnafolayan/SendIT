@@ -6,8 +6,8 @@
   "repository": "https://github.com/jnafolayan/SendIT.git",
   "author": "jnafolayan <jnafolayan@gmail.com>",
   "scripts": {
-    "test": "mocha --timeout 10000 --require @babel/register",
-    "test-travis": "node_modules/.bin/nyc --require @babel/register node_modules/.bin/mocha -- -R spec test-travis/test",
+    "test": "node_modules/.bin/nyc mocha --timeout 10000 --require @babel/register",
+    "coverage": "node_modules/.bin/nyc report --reporter=text-lcov | coveralls",
     "prebuild": "rimraf build",
     "lint": "eslint server --fix",
     "build": "babel server -d build",
