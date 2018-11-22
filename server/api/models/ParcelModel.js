@@ -65,7 +65,7 @@ export default class ParcelModel {
    * Fetches all Parcel in the database that match the filter.
    * @static
    * @param {object} filter - properties of the Parcel
-  * @param {object} filter.where - fields to look into
+   * @param {object} filter.where - fields to look into
    * @param {object} filter.or - fields to look into
    * @param {string} filter.orderBy - what to sort with
    * @return {object} - The query object
@@ -129,6 +129,54 @@ export default class ParcelModel {
     return ParcelModel.fetch({
       where: { id },
     });
+  }
+
+  /**
+   * Deletes a Parcel in the database
+   *
+   * @static
+   * @param {object} filter - properties of the Parcel
+   * @param {object} filter.where - fields to look into
+   * @param {object} filter.or - fields to look into
+   * @return {object} - The query object
+   */
+  static delete(filter) {
+    const {
+      where,
+      or,
+    } = filter;
+
+    let query = 'DELETE FROM parcels';
+
+    if (where) {
+      const clauses = _.entries(where)
+        .map((entry) => {
+          let val = entry[1];
+          if (!Number.isFinite(parseInt(val, 10))) {
+            val = `'${val}'`;
+          }
+          return `${entry[0]} = ${val}`;
+        })
+        .join(' AND ');
+      query += ` WHERE (${clauses})`;
+    }
+
+    if (or) {
+      const clauses = _.entries(or)
+        .map((entry) => {
+          let val = entry[1];
+          if (!Number.isFinite(parseInt(val, 10))) {
+            val = `'${val}'`;
+          }
+          return `${entry[0]} = ${val}`;
+        })
+        .join(' AND ');
+      query += ` OR (${clauses})`;
+    }
+
+    return {
+      text: `${query};`,
+    };
   }
 
   /**

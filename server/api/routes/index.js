@@ -33,5 +33,8 @@ export default () => {
   router.route('/parcels/:parcelID')
     .get(verifyToken, ParcelController.fetchParcel);
 
+  router.route('/parcels/:parcelID/cancel')
+    .patch(verifyToken, ParcelController.cancelParcel);
+
   return router;
 };
