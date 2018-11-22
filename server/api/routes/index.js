@@ -24,7 +24,11 @@ export default () => {
     .post(UserController.loginUser);
 
   router.route('/parcels')
+    .get(verifyToken, ParcelController.fetchParcels)
     .post(verifyToken, ParcelController.createParcel);
+
+  router.route('/parcels/:parcelID')
+    .get(verifyToken, ParcelController.fetchParcel);
 
   return router;
 };

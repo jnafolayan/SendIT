@@ -9,12 +9,15 @@ import { capitalize } from '../lib/util';
  * @param {boolean} [toCamelCase=false] - Should the fields be in camel case?
  * @returns {object} - The formatted document.
  */
-export function formatSQLResult(row, toCamelCase) {
+export function formatSQLResult(row, toCamelCase, replacements = {}) {
   const object = {};
   _.each(row, (value, field) => {
     let key = field;
     if (toCamelCase) {
       key = field.replace(/^(\w+)_(\w+)/i, (match, pre, post) => pre + capitalize(post));
+    }
+    if (key in replacements) {
+      key = replacements[key];
     }
     object[key] = value;
   });
