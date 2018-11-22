@@ -71,6 +71,7 @@ export function createParcel(req, res) {
 export function fetchParcels(req, res) {
   grabUser()
     .then(checkIfExists)
+    .then(checkIfAdmin)
     .then(grabAll)
     .then(formatResult)
     .then(finalize)
@@ -86,7 +87,14 @@ export function fetchParcels(req, res) {
     if (!rows.length) {
       throw createError(404, 'user not found');
     }
-    return rows;
+    return rows[0];
+  }
+
+  function checkIfAdmin(userDoc) {
+    if (!userDoc.is_admin) {
+      throw createError(401, 'not allowed');
+    }
+    return userDoc;
   }
 
   function grabAll() {
