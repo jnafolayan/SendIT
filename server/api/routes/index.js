@@ -17,5 +17,8 @@ export default () => {
   router.route('/auth/signup')
     .post(UserController.createUser);
 
+  router.route('/auth/login')
+    .post(UserController.loginUser);
+
   return router;
 };
