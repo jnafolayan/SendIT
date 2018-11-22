@@ -1,0 +1,26 @@
+-- CREATE EXTENSION IF NOT EXISTS "pgcrypto";
+
+CREATE TABLE users (
+  id INTEGER PRIMARY KEY,
+  firstname VARCHAR (100) NOT NULL,
+  lastname VARCHAR (100) NOT NULL,
+  othernames VARCHAR (355) NOT NULL,
+  email VARCHAR (355) NOT NULL,
+  username VARCHAR (100) NOT NULL,
+  password VARCHAR (100) NOT NULL,
+  registered DATE DEFAULT CURRENT_DATE,
+  is_admin BOOLEAN DEFAULT FALSE
+);
+
+CREATE TABLE parcels (
+  id INTEGER PRIMARY KEY,
+  placed_by INTEGER REFERENCES users (id) ON DELETE CASCADE,
+  weight REAL NOT NULL,
+  weightmetric VARCHAR (5) NOT NULL,
+  sent_on DATE DEFAULT CURRENT_DATE,
+  delivered_on DATE DEFAULT CURRENT_DATE,
+  status VARCHAR (20) NOT NULL,
+  from_loc VARCHAR (355) NOT NULL,
+  to_loc VARCHAR (355) NOT NULL,
+  current_loc VARCHAR (355) NOT NULL
+);
