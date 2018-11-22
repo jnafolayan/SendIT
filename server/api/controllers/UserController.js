@@ -1,10 +1,12 @@
 /* eslint-disable no-use-before-define */
 
+import _ from 'lodash';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import db from '../../db';
 import UniqueID from '../../services/UniqueID';
 import { SECRET, EXPIRY } from '../../config/jwt';
+import ParcelModel from '../models/ParcelModel';
 import UserModel from '../models/UserModel';
 import * as UserSchema from '../schemas/UserSchema';
 import {
@@ -19,6 +21,7 @@ const HASH_COST = 10;
 
 /**
  * Create a User from a set of details
+ *
  * @param {Request} req - The http request object
  * @param {Response} res - The http response object
  */
@@ -47,7 +50,7 @@ export function createUser(req, res) {
 
   function checkIfExists({ rows }) {
     if (rows.length) {
-      throw createError(403, 'user exists');
+      throw createError(403, 'user already exists');
     }
     return rows;
   }
@@ -75,7 +78,7 @@ export function createUser(req, res) {
 
   function checkIfNewUserExists({ rows }) {
     if (!rows.length) {
-      throw createError(403, 'user not found');
+      throw createError(404, 'user not found');
     }
     return rows;
   }
@@ -97,6 +100,7 @@ export function createUser(req, res) {
 
 /**
  * Sign a User in to his/her account
+ *
  * @param {Request} req - The http request object
  * @param {Response} res - The http response object
  */
@@ -120,7 +124,7 @@ export function loginUser(req, res) {
 
   function checkIfExists({ rows }) {
     if (!rows.length) {
-      throw createError(403, 'user not found');
+      throw createError(404, 'user not found');
     }
     return rows;
   }
@@ -145,5 +149,59 @@ export function loginUser(req, res) {
       token,
       user,
     }]);
+  }
+}
+
+/**
+ * Fetches all Parcels that belong to a User
+ *
+ * @param {Request} req - The http request object
+ * @param {Response} res - The http response object
+ */
+export function fetchParcels(req, res) {
+  validateSchema(UserSchema.fetchParcelsSchema, req.params)
+    .then(fetchUser)
+    .then(checkIfExists)
+    .then(fetchSentParcels)
+    .then(formatResult)
+    .then(finalize)
+    .catch(finalizeError(res));
+
+  function fetchUser(params) {
+    // ensure that the owner of the parcels is the only one allowed
+    // to view them
+    if (+params.userID !== req.user.id) {
+      throw createError(403, 'user not valid');
+    }
+
+    const query = UserModel.fetch({
+      where: { id: +params.userID },
+    });
+
+    return db.query(query);
+  }
+
+  function checkIfExists({ rows }) {
+    if (!rows.length) {
+      throw createError(404, 'user not found');
+    }
+    return rows;
+  }
+
+  function fetchSentParcels() {
+    const query = ParcelModel.fetch({
+      where: { placed_by: +req.params.userID },
+    });
+
+    return db.query(query);
+  }
+
+  function formatResult({ rows }) {
+    return _(rows)
+      .map(row => formatSQLResult(row, true, ParcelModel.SQLReplacement));
+  }
+
+  function finalize(rows) {
+    sendSuccess(res, 200, rows);
   }
 }

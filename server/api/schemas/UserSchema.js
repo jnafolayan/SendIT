@@ -11,3 +11,7 @@ export const loginSchema = {
   username: String,
   password: String,
 };
+
+export const fetchParcelsSchema = {
+  userID: String,
+};

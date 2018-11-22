@@ -23,6 +23,9 @@ export default () => {
   router.route('/auth/login')
     .post(UserController.loginUser);
 
+  router.route('/users/:userID/parcels')
+    .get(verifyToken, UserController.fetchParcels);
+
   router.route('/parcels')
     .get(verifyToken, ParcelController.fetchParcels)
     .post(verifyToken, ParcelController.createParcel);
