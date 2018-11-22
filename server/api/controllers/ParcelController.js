@@ -115,7 +115,7 @@ export function fetchParcels(req, res) {
  * @param {Response} res - The http response object
  */
 export function fetchParcel(req, res) {
-  validateSchema(ParcelSchema.fetchSchema, req.params)
+  validateSchema(ParcelSchema.paramSchema, req.params)
     .then(grabUser)
     .then(checkIfUserExists)
     .then(grabParcel)
@@ -170,7 +170,7 @@ export function fetchParcel(req, res) {
  * @param {Response} res - The http response object
  */
 export function cancelParcel(req, res) {
-  validateSchema(ParcelSchema.cancelSchema, req.params)
+  validateSchema(ParcelSchema.paramSchema, req.params)
     .then(grabParcel)
     .then(checkIfExists)
     .then(cancelParcelOrder)
@@ -210,6 +210,77 @@ export function cancelParcel(req, res) {
     sendSuccess(res, 200, [{
       id: +req.params.parcelID,
       message: 'order canceled',
+    }]);
+  }
+}
+
+/**
+ * Changes the destination of a single Parcel
+ *
+ * @param {Request} req - The http request object
+ * @param {Response} res - The http response object
+ */
+export function changeDestination(req, res) {
+  validateSchema(ParcelSchema.paramSchema, req.params)
+    .then(() => validateSchema(ParcelSchema.changeDestSchema, req.body))
+    .then(grabParcel)
+    .then(checkIfExists)
+    .then(abortIfDelivered)
+    .then(abortIfSame)
+    .then(changeDest)
+    .then(finalize)
+    .catch(finalizeError(res));
+
+  function grabParcel() {
+    const query = ParcelModel.fetch({
+      where: {
+        id: +req.params.parcelID,
+        placed_by: +req.user.id,
+      },
+    });
+
+    return db.query(query);
+  }
+
+  function checkIfExists({ rows }) {
+    if (!rows.length) {
+      throw createError(404, 'parcel not found');
+    }
+    return rows[0];
+  }
+
+  function abortIfDelivered(parcelDoc) {
+    if (parcelDoc.status === 'delivered') {
+      throw createError(403, 'parcel is delivered');
+    }
+    return parcelDoc;
+  }
+
+  function abortIfSame(parcelDoc) {
+    if (parcelDoc.from_loc === req.body.to) {
+      throw createError(403, 'from cannot be to');
+    }
+    return parcelDoc;
+  }
+
+  function changeDest() {
+    const query = ParcelModel.update({
+      set: {
+        to_loc: req.body.to,
+      },
+      where: {
+        id: +req.params.parcelID,
+        placed_by: +req.user.id,
+      },
+    });
+    return db.query(query);
+  }
+
+  function finalize() {
+    sendSuccess(res, 200, [{
+      id: +req.params.parcelID,
+      to: req.body.to,
+      message: 'parcel destination updated',
     }]);
   }
 }

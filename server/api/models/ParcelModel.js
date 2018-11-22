@@ -180,6 +180,68 @@ export default class ParcelModel {
   }
 
   /**
+   * Updates a Parcel in the database
+   *
+   * @static
+   * @param {object} filter - properties of the Parcel
+   * @param {object} filter.where - fields to look into
+   * @param {object} filter.or - fields to look into
+   * @return {object} - The query object
+   */
+  static update(filter) {
+    const {
+      set,
+      where,
+      or,
+    } = filter;
+
+    let query = 'UPDATE parcels';
+
+    if (set) {
+      const clauses = _.entries(set)
+        .map((entry) => {
+          let val = entry[1];
+          if (!Number.isFinite(parseInt(val, 10))) {
+            val = `'${val}'`;
+          }
+          return `${entry[0]} = ${val}`;
+        })
+        .join(', ');
+      query += ` SET ${clauses}`;
+    }
+
+    if (where) {
+      const clauses = _.entries(where)
+        .map((entry) => {
+          let val = entry[1];
+          if (!Number.isFinite(parseInt(val, 10))) {
+            val = `'${val}'`;
+          }
+          return `${entry[0]} = ${val}`;
+        })
+        .join(' AND ');
+      query += ` WHERE (${clauses})`;
+    }
+
+    if (or) {
+      const clauses = _.entries(or)
+        .map((entry) => {
+          let val = entry[1];
+          if (!Number.isFinite(parseInt(val, 10))) {
+            val = `'${val}'`;
+          }
+          return `${entry[0]} = ${val}`;
+        })
+        .join(' AND ');
+      query += ` OR (${clauses})`;
+    }
+
+    return {
+      text: `${query};`,
+    };
+  }
+
+  /**
    * The replacement for snake_cased fields to camelCase.
    *
    * @static
