@@ -7,7 +7,7 @@ env:
 services:
   - postgresql
 postgres:
-  # adapter: postgresql
+  adapter: postgresql
   database: sendit
   username: postgres
 before-script:
