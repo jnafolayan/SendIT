@@ -39,5 +39,9 @@ export default () => {
   router.route('/parcels/:parcelID/destination')
     .patch(verifyToken, ParcelController.changeDestination);
 
+  // Accessible only to Admin
+  router.route('/parcels/:parcelID/status')
+    .patch(verifyToken, ParcelController.changeStatus);
+
   return router;
 };

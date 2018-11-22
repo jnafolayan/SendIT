@@ -39,7 +39,7 @@ export function createParcel(req, res) {
 
   function checkIfExists({ rows }) {
     if (!rows.length) {
-      throw createError(403, 'forbidden');
+      throw createError(404, 'user not found');
     }
     return rows;
   }
@@ -84,7 +84,7 @@ export function fetchParcels(req, res) {
 
   function checkIfExists({ rows }) {
     if (!rows.length) {
-      throw createError(403, 'forbidden');
+      throw createError(404, 'user not found');
     }
     return rows;
   }
@@ -132,7 +132,7 @@ export function fetchParcel(req, res) {
 
   function checkIfUserExists({ rows }) {
     if (!rows.length) {
-      throw createError(403, 'forbidden');
+      throw createError(404, 'user not found');
     }
     return rows;
   }
@@ -149,7 +149,7 @@ export function fetchParcel(req, res) {
 
   function checkIfParcelExists({ rows }) {
     if (!rows.length) {
-      throw createError(403, 'parcel not found');
+      throw createError(404, 'parcel not found');
     }
     return rows;
   }
@@ -251,14 +251,14 @@ export function changeDestination(req, res) {
 
   function abortIfDelivered(parcelDoc) {
     if (parcelDoc.status === 'delivered') {
-      throw createError(403, 'parcel is delivered');
+      throw createError(400, 'parcel is delivered');
     }
     return parcelDoc;
   }
 
   function abortIfSame(parcelDoc) {
     if (parcelDoc.from_loc === req.body.to) {
-      throw createError(403, 'from cannot be to');
+      throw createError(400, 'from cannot be to');
     }
     return parcelDoc;
   }
@@ -281,6 +281,76 @@ export function changeDestination(req, res) {
       id: +req.params.parcelID,
       to: req.body.to,
       message: 'parcel destination updated',
+    }]);
+  }
+}
+
+export function changeStatus(req, res) {
+  validateSchema(ParcelSchema.paramSchema, req.params)
+    .then(() => validateSchema(ParcelSchema.changeStatusSchema, req.body))
+    .then(grabUser)
+    .then(checkIfUserExists)
+    .then(abortIfNotAdmin)
+    .then(grabParcel)
+    .then(checkIfExists)
+    .then(changeDest)
+    .then(finalize)
+    .catch(finalizeError(res));
+
+  function grabUser() {
+    // check if user exists already
+    const query = UserModel.fetchByID(req.user.id);
+    return db.query(query);
+  }
+
+  function checkIfUserExists({ rows }) {
+    if (!rows.length) {
+      throw createError(404, 'user not found');
+    }
+    return rows[0];
+  }
+
+  function abortIfNotAdmin(userDoc) {
+    if (!userDoc.is_admin) {
+      // unauthorized
+      throw createError(401, 'not allowed');
+    }
+  }
+
+  function grabParcel() {
+    const query = ParcelModel.fetch({
+      where: {
+        id: +req.params.parcelID
+      },
+    });
+
+    return db.query(query);
+  }
+
+  function checkIfExists({ rows }) {
+    if (!rows.length) {
+      throw createError(404, 'parcel not found');
+    }
+    return rows[0];
+  }
+
+  function changeStat() {
+    const query = ParcelModel.update({
+      set: {
+        status: req.body.status,
+      },
+      where: {
+        id: +req.params.parcelID,
+      },
+    });
+    return db.query(query);
+  }
+
+  function finalize() {
+    sendSuccess(res, 200, [{
+      id: +req.params.parcelID,
+      status: req.body.status,
+      message: 'parcel status updated',
     }]);
   }
 }

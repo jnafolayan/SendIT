@@ -7,8 +7,7 @@
   "author": "jnafolayan <jnafolayan@gmail.com>",
   "scripts": {
     "test": "mocha --timeout 10000 --require @babel/register",
-    "test-travis": "mkdir test-travis && babel test -d test-travis/test && babel server -d test-travis/server && ./node_modules/istanbul/lib/cli.js cover ./node_modules/mocha/bin/_mocha -- -R spec test-travis/test",
-    "test_local": "set NODE_ENV=test && mocha --timeout 10000 --require @babel/register",
+    "test-travis": "node_modules/.bin/nyc --require @babel/register node_modules/.bin/mocha -- -R spec test-travis/test",
     "prebuild": "rimraf build",
     "lint": "eslint server --fix",
     "build": "babel server -d build",
@@ -40,6 +39,7 @@
     "eslint-config-airbnb-base": "^13.1.0",
     "eslint-plugin-import": "^2.14.0",
     "istanbul": "^0.4.5",
-    "mocha": "^5.2.0"
+    "mocha": "^5.2.0",
+    "nyc": "^13.1.0"
   }
 }
