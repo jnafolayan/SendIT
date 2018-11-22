@@ -43,5 +43,9 @@ export default () => {
   router.route('/parcels/:parcelID/status')
     .patch(verifyToken, ParcelController.changeStatus);
 
+  // Accessible only to Admin
+  router.route('/parcels/:parcelID/currentlocation')
+    .patch(verifyToken, ParcelController.changeCurrentLocation);
+
   return router;
 };

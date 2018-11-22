@@ -293,6 +293,12 @@ export function changeDestination(req, res) {
   }
 }
 
+/**
+ * Changes the status of a single Parcel
+ *
+ * @param {Request} req - The http request object
+ * @param {Response} res - The http response object
+ */
 export function changeStatus(req, res) {
   validateSchema(ParcelSchema.paramSchema, req.params)
     .then(() => validateSchema(ParcelSchema.changeStatusSchema, req.body))
@@ -358,6 +364,82 @@ export function changeStatus(req, res) {
     sendSuccess(res, 200, [{
       id: +req.params.parcelID,
       status: req.body.status,
+      message: 'parcel status updated',
+    }]);
+  }
+}
+
+/**
+ * Changes the current location of a single Parcel
+ *
+ * @param {Request} req - The http request object
+ * @param {Response} res - The http response object
+ */
+export function changeCurrentLocation(req, res) {
+  validateSchema(ParcelSchema.paramSchema, req.params)
+    .then(() => validateSchema(ParcelSchema.changeLocationSchema, req.body))
+    .then(grabUser)
+    .then(checkIfUserExists)
+    .then(abortIfNotAdmin)
+    .then(grabParcel)
+    .then(checkIfExists)
+    .then(changeDest)
+    .then(finalize)
+    .catch(finalizeError(res));
+
+  function grabUser() {
+    // check if user exists already
+    const query = UserModel.fetchByID(req.user.id);
+    return db.query(query);
+  }
+
+  function checkIfUserExists({ rows }) {
+    if (!rows.length) {
+      throw createError(404, 'user not found');
+    }
+    return rows[0];
+  }
+
+  function abortIfNotAdmin(userDoc) {
+    if (!userDoc.is_admin) {
+      // unauthorized
+      throw createError(401, 'not allowed');
+    }
+  }
+
+  function grabParcel() {
+    const query = ParcelModel.fetch({
+      where: {
+        id: +req.params.parcelID
+      },
+    });
+
+    return db.query(query);
+  }
+
+  function checkIfExists({ rows }) {
+    if (!rows.length) {
+      throw createError(404, 'parcel not found');
+    }
+    return rows[0];
+  }
+
+  function changeLoc() {
+    const query = ParcelModel.update({
+      set: {
+        current_loc: req.body.currentLocation,
+      },
+      where: {
+        id: +req.params.parcelID,
+      },
+    });
+    return db.query(query);
+  }
+
+  function finalize() {
+    sendSuccess(res, 200, [{
+      id: +req.params.parcelID,
+      currentLocation: req.body.currentLocation,
       message: 'parcel status updated',
     }]);
   }

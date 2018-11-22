@@ -18,3 +18,7 @@ export const changeDestSchema = {
 export const changeStatusSchema = {
   status: String,
 };
+
+export const changeLocationSchema = {
+  currentLocation: String, // geo-address
+};
