@@ -136,7 +136,7 @@ export function loginUser(req, res) {
   function verifyPassword(user) {
     // ensure passwords match
     if (!bcrypt.compareSync(req.body.password, user.password)) {
-      throw createError(403, 'password not correct');
+      throw createError(404, 'user not found');
     }
     return user;
   }
