@@ -11,7 +11,8 @@
     "prebuild": "rimraf build",
     "lint": "eslint server --fix",
     "build": "babel server -d build",
-    "start": "npm run lint && npm run build && node build/index.js"
+    "start": "npm run lint && npm run build && node build/index.js",
+    "start-heroku": "npm run build && node build/index.js"
   },
   "license": "MIT",
   "private": false,
