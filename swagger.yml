@@ -1,0 +1,417 @@
+swagger: "2.0"
+
+info:
+  version: 1.0.0
+  title: SendIT API
+  description: SendIT API documentation.
+
+host: localhost:3000
+basePath: /api/v1
+
+definitions:
+  User:
+    properties:
+      firstname:
+        type: string
+      lastname:
+        type: string
+      othernames:
+        type: string
+      email:
+        type: string
+      username:
+        type: string
+      password:
+        type: string
+  Parcel:
+    properties:
+      id:
+        type: number
+      placedBy:
+        type: string
+      weight:
+        type: number
+      weightmetric:
+        type: string
+      from:
+        type: string
+      to:
+        type: string
+      currentLocation:
+        type: string
+  Error:
+    properties:
+      status:
+        type: number
+      error:
+        type: string
+
+responses:
+  JWT400Error:
+    description: Token not found in header
+    schema:
+      $ref: "#/definitions/Error"
+  JWT403Error:
+    description: Token is invalid
+    schema:
+      $ref: "#/definitions/Error"
+  UserNotFoundError:
+    description: User not found
+    schema:
+      $ref: "#/definitions/Error"
+  NotAdminError:
+    description: User is not an admin
+    schema:
+      $ref: "#/definitions/Error"
+  ParcelNotFoundError:
+    description: Parcels not found
+    schema:
+      $ref: "#/definitions/Error"
+  ParcelsFetched:
+    description: Parcels where fetched
+    schema:
+      properties:
+        status: 
+          type: number,
+        data:
+          type: array
+          items:
+            $ref: "#/definitions/Parcel"
+  ParcelCanceled:
+    description: Parcel order canceled
+    schema:
+      properties:
+        status: 
+          type: number,
+        data:
+          type: array
+          items:
+            id:
+              type: string
+            message:
+              type: string
+  ParcelDestinationChanged:
+    description: Parcel destination changed
+    schema:
+      properties:
+        status: 
+          type: number,
+        data:
+          type: array
+          items:
+            id:
+              type: string
+            message:
+              type: string
+  ParcelStatusChanged:
+    description: Parcel status changed
+    schema:
+      properties:
+        status: 
+          type: number,
+        data:
+          type: array
+          items:
+            id:
+              type: string
+            message:
+              type: string
+  ParcelCurrentLocationChanged:
+    description: Parcel current location changed
+    schema:
+      properties:
+        status: 
+          type: number,
+        data:
+          type: array
+          items:
+            id:
+              type: string
+            message:
+              type: string
+
+paths:
+  /auth/signup:
+    post:
+      summary: Signs a user up.
+      description: Creates an account for a user.
+      parameters:
+        - name: firstname
+          in: body
+          description: User's firstname
+          required: true
+          type: string
+        - name: lastname
+          in: body
+          description: User's lastname
+          required: true
+          type: string
+        - name: othernames
+          in: body
+          description: User's other names
+          required: true
+          type: string
+        - name: email
+          in: body
+          description: User's email
+          required: true
+          type: string
+        - name: username
+          in: body
+          description: User's username
+          required: true
+          type: string
+        - name: password
+          in: body
+          description: User's password
+          required: true
+          type: string
+      responses:
+        201:
+          description: A token and user details
+          schema:
+            properties:
+              status:
+                type: number
+              data:
+                type: array
+                items:
+                  token:
+                    type: string
+                  user:
+                    $ref: "#/definitions/User"
+        403:
+          description: An existing user with the passed credentials was found.
+          schema:
+            properties:
+              status:
+                type: number
+              error: 
+                type: string
+  /auth/login:
+    post:
+      summary: Logs a user in to his/her account.
+      description: Grants user access to his/her existing account.
+      parameters:
+        - name: username
+          in: body
+          description: User's username
+          required: true
+          type: string
+        - name: password
+          in: body
+          description: User's password
+          required: true
+          type: string
+      responses:
+        200:
+          description: The user account was found.
+          schema:
+            properties:
+              status:
+                type: number
+              data:
+                type: array
+                items:
+                  token:
+                    type: string
+                  user:
+                    $ref: "#/definitions/User"
+        404:
+          description: The user account was not found.
+          schema:
+            properties:
+              status:
+                type: number
+              error: 
+                type: string
+  /users/{userID}/parcels:
+    get:
+      summary: Fetches a list of parcel orders by a user
+      description: Fetches a list of all parcel orders created by this account.
+      parameters:
+        - name: userID
+          in: path
+          description: The id of the user
+          required: true
+          type: string
+      responses:
+        200:
+          description: The list of parcels was found.
+          schema:
+            properties:
+              status:
+                type: number
+              data:
+                type: array
+                items:
+                  $ref: "#/definitions/Parcel"
+        404:
+          description: The user account was not found.
+          schema:
+            properties:
+              status:
+                type: number
+              error: 
+                type: string
+        403:
+          description: The logged in user account and the userID don't match.
+          schema:
+            properties:
+              status:
+                type: number
+              error: 
+                type: string
+        400:
+          $ref: "#/responses/JWT400Error"
+        403:
+          $ref: "#/responses/JWT403Error"
+  /parcels:
+    post:
+      summary: Creates a parcel order
+      description: Creates a parcel order
+      parameters:
+        - name: weight
+          in: body
+          type: string
+          description: The weight of the parcel
+        - name: weightmetric
+          in: body
+          type: string
+          description: The unit of measurement of the weight
+        - name: from
+          in: body
+          type: string
+          description: The pickup location for the parcel
+        - name: to
+          in: body
+          type: string
+          description: The destination location for the parcel
+      responses:
+        200:
+          $ref: "#/responses/ParcelCreated"
+        404:
+          $ref: "#/responses/UserNotFoundError"
+        400:
+          $ref: "#/responses/JWT400Error"
+        403:
+          $ref: "#/responses/JWT403Error"
+    get:
+      summary: Fetch all parcel orders
+      description: Admin fetches all parcel orders created
+      parameters:
+        - name: orderBy
+          in: query
+          type: string
+          description: How should the result be sorted
+        - name: limit
+          in: query
+          type: string
+          description: How many results can be fetched in one query
+        - name: offset
+          in: query
+          type: string
+          description: How many results should be skipped
+      responses:
+        200:
+          $ref: "#/responses/ParcelsFetched"
+        401:
+          $ref: "#/responses/NotAdminError"
+        404:
+          $ref: "#/responses/UserNotFoundError"
+        400:
+          $ref: "#/responses/JWT400Error"
+        403:
+          $ref: "#/responses/JWT403Error"
+  /parcels/{parcelID}:
+    get:
+      summary: Fetch a single parcel order
+      description: Fetch an order placed by a user
+      parameters:
+        - name: parcelID
+          in: path
+          description: The id of the parcel
+          required: true
+      responses:
+        200:
+          $ref: "#/responses/ParcelsFetched"
+        404:
+          $ref: "#/responses/ParcelNotFoundError"
+        404:
+          $ref: "#/responses/UserNotFoundError"
+        400:
+          $ref: "#/responses/JWT400Error"
+        403:
+          $ref: "#/responses/JWT403Error"
+  /parcels/{parcelID}/cancel:
+    patch:
+      summary: Cancel a single parcel order
+      description: Cancel an order placed by a user
+      parameters:
+        - name: parcelID
+          in: path
+          description: The id of the parcel
+          required: true
+      responses:
+        200:
+          $ref: "#/responses/ParcelCanceled"
+        404:
+          $ref: "#/responses/ParcelNotFoundError"
+        400:
+          $ref: "#/responses/JWT400Error"
+        403:
+          $ref: "#/responses/JWT403Error"
+  /parcels/{parcelID}/destination:
+    patch:
+      summary: Change the destination a single parcel order
+      description: Change the destination of an order placed by a user
+      parameters:
+        - name: parcelID
+          in: path
+          description: The id of the parcel
+          required: true
+      responses:
+        200:
+          $ref: "#/responses/ParcelDestinationChanged"
+        404:
+          $ref: "#/responses/ParcelNotFoundError"
+        400:
+          $ref: "#/responses/JWT400Error"
+        403:
+          $ref: "#/responses/JWT403Error"
+  /parcels/{parcelID}/status:
+    patch:
+      summary: Change the status a single parcel order
+      description: Change the status of an order placed by a user
+      parameters:
+        - name: parcelID
+          in: path
+          description: The id of the parcel
+          required: true
+      responses:
+        200:
+          $ref: "#/responses/ParcelStatusChanged"
+        404:
+          $ref: "#/responses/ParcelNotFoundError"
+        400:
+          $ref: "#/responses/JWT400Error"
+        403:
+          $ref: "#/responses/JWT403Error"
+  /parcels/{parcelID}/changelocation:
+    patch:
+      summary: Change the current location a single parcel order
+      description: Change the current location of an order placed by a user
+      parameters:
+        - name: parcelID
+          in: path
+          description: The id of the parcel
+          required: true
+      responses:
+        200:
+          $ref: "#/responses/ParcelCurrentLocationChanged"
+        404:
+          $ref: "#/responses/ParcelNotFoundError"
+        400:
+          $ref: "#/responses/JWT400Error"
+        403:
+          $ref: "#/responses/JWT403Error"

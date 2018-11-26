@@ -1,8 +1,10 @@
 /* eslint-disable no-use-before-define */
 
 import _ from 'lodash';
+import dotenv from 'dotenv';
 import db from '../../db';
 import UniqueID from '../../services/UniqueID';
+import Mailing from '../../services/Mailing';
 import UserModel from '../models/UserModel';
 import ParcelModel from '../models/ParcelModel';
 import * as ParcelSchema from '../schemas/ParcelSchema';
@@ -13,6 +15,13 @@ import {
   validateSchema,
 } from '../../lib/validations';
 import { formatSQLResult } from '../../db/util';
+
+dotenv.config();
+
+const hostEmail = process.env.EMAIL_HOST;
+const hostPassword = process.env.EMAIL_PASSWORD;
+
+const mailingService = new Mailing(hostEmail, hostPassword);
 
 
 /**
@@ -39,7 +48,7 @@ export function createParcel(req, res) {
 
   function checkIfExists({ rows }) {
     if (!rows.length) {
-      throw createError(403, 'forbidden');
+      throw createError(404, 'user not found');
     }
     return rows;
   }
@@ -71,6 +80,7 @@ export function createParcel(req, res) {
 export function fetchParcels(req, res) {
   grabUser()
     .then(checkIfExists)
+    .then(checkIfAdmin)
     .then(grabAll)
     .then(formatResult)
     .then(finalize)
@@ -84,9 +94,16 @@ export function fetchParcels(req, res) {
 
   function checkIfExists({ rows }) {
     if (!rows.length) {
-      throw createError(403, 'forbidden');
+      throw createError(404, 'user not found');
     }
-    return rows;
+    return rows[0];
+  }
+
+  function checkIfAdmin(userDoc) {
+    if (!userDoc.is_admin) {
+      throw createError(401, 'not allowed');
+    }
+    return userDoc;
   }
 
   function grabAll() {
@@ -132,7 +149,7 @@ export function fetchParcel(req, res) {
 
   function checkIfUserExists({ rows }) {
     if (!rows.length) {
-      throw createError(403, 'forbidden');
+      throw createError(404, 'user not found');
     }
     return rows;
   }
@@ -149,7 +166,7 @@ export function fetchParcel(req, res) {
 
   function checkIfParcelExists({ rows }) {
     if (!rows.length) {
-      throw createError(403, 'parcel not found');
+      throw createError(404, 'parcel not found');
     }
     return rows;
   }
@@ -159,7 +176,7 @@ export function fetchParcel(req, res) {
   }
 
   function finalize(parcel) {
-    sendSuccess(res, 200, parcel);
+    sendSuccess(res, 200, [parcel]);
   }
 }
 
@@ -251,14 +268,14 @@ export function changeDestination(req, res) {
 
   function abortIfDelivered(parcelDoc) {
     if (parcelDoc.status === 'delivered') {
-      throw createError(403, 'parcel is delivered');
+      throw createError(400, 'parcel is delivered');
     }
     return parcelDoc;
   }
 
   function abortIfSame(parcelDoc) {
     if (parcelDoc.from_loc === req.body.to) {
-      throw createError(403, 'from cannot be to');
+      throw createError(400, 'from cannot be to');
     }
     return parcelDoc;
   }
@@ -281,6 +298,223 @@ export function changeDestination(req, res) {
       id: +req.params.parcelID,
       to: req.body.to,
       message: 'parcel destination updated',
+    }]);
+  }
+}
+
+/**
+ * Changes the status of a single Parcel
+ *
+ * @param {Request} req - The http request object
+ * @param {Response} res - The http response object
+ */
+export function changeStatus(req, res) {
+  let user;
+
+  validateSchema(ParcelSchema.paramSchema, req.params)
+    .then(() => validateSchema(ParcelSchema.changeStatusSchema, req.body))
+    .then(grabUser)
+    .then(checkIfUserExists)
+    .then(abortIfNotAdmin)
+    .then(grabParcel)
+    .then(checkIfExists)
+    .then(changeStat)
+    .then(sendMail)
+    .then(finalize)
+    .catch(finalizeError(res));
+
+  function grabUser() {
+    // check if user exists already
+    const query = UserModel.fetchByID(req.user.id);
+    return db.query(query);
+  }
+
+  function checkIfUserExists({ rows }) {
+    if (!rows.length) {
+      throw createError(404, 'user not found');
+    }
+    return rows[0];
+  }
+
+  function abortIfNotAdmin(userDoc) {
+    if (!userDoc.is_admin) {
+      // unauthorized
+      throw createError(401, 'not allowed');
+    }
+
+    user = userDoc;
+    return user;
+  }
+
+  function grabParcel() {
+    const query = ParcelModel.fetch({
+      where: {
+        id: +req.params.parcelID,
+      },
+    });
+
+    return db.query(query);
+  }
+
+  function checkIfExists({ rows }) {
+    if (!rows.length) {
+      throw createError(404, 'parcel not found');
+    }
+    return rows[0];
+  }
+
+  function changeStat() {
+    const query = ParcelModel.update({
+      set: {
+        status: req.body.status,
+      },
+      where: {
+        id: +req.params.parcelID,
+      },
+    });
+    return db.query(query);
+  }
+
+  function sendMail() {
+    const { parcelID: id } = req.params;
+
+    const statusMap = {
+      transiting: 'been picked up and is on its way to its destination',
+      delivered: 'been delivered',
+    };
+
+    let address = process.env.NODE_ENV === 'development'
+      ? `http://localhost:${process.env.PORT || 3000}` : process.env.ONLINE_HOST;
+
+    address += `/parcels?id=${id}`;
+
+    const options = {
+      from: process.env.SENDIT_EMAIL || '',
+      to: user.email,
+      subject: `SendIT - [${id}] Parcel order update`,
+      html: `
+        <h3 style='text-align:center;color:#000;'>${id} - Parcel order update</h3>
+        <h4>Dear ${user.firstname}</h4>
+        <p>Your parcel with order id ${id} has ${statusMap[req.body.status]}. To view more details about the parcel, click the link below.</p>
+        <br><a href=${address}>View order details</a>
+      `,
+    };
+
+    // send in the background
+    mailingService.sendMail(options)
+      .catch(() => {
+      });
+  }
+
+  function finalize() {
+    sendSuccess(res, 200, [{
+      id: +req.params.parcelID,
+      status: req.body.status,
+      message: 'parcel status updated',
+    }]);
+  }
+}
+
+/**
+ * Changes the current location of a single Parcel
+ *
+ * @param {Request} req - The http request object
+ * @param {Response} res - The http response object
+ */
+export function changeCurrentLocation(req, res) {
+  let user;
+  validateSchema(ParcelSchema.paramSchema, req.params)
+    .then(() => validateSchema(ParcelSchema.changeLocationSchema, req.body))
+    .then(grabUser)
+    .then(checkIfUserExists)
+    .then(abortIfNotAdmin)
+    .then(grabParcel)
+    .then(checkIfExists)
+    .then(changeLoc)
+    .then(sendMail)
+    .then(finalize)
+    .catch(finalizeError(res));
+
+  function grabUser() {
+    // check if user exists already
+    const query = UserModel.fetchByID(req.user.id);
+    return db.query(query);
+  }
+
+  function checkIfUserExists({ rows }) {
+    if (!rows.length) {
+      throw createError(404, 'user not found');
+    }
+    return rows[0];
+  }
+
+  function abortIfNotAdmin(userDoc) {
+    if (!userDoc.is_admin) {
+      // unauthorized
+      throw createError(401, 'not allowed');
+    }
+    user = userDoc;
+    return userDoc;
+  }
+
+  function grabParcel() {
+    const query = ParcelModel.fetch({
+      where: {
+        id: +req.params.parcelID,
+      },
+    });
+
+    return db.query(query);
+  }
+
+  function checkIfExists({ rows }) {
+    if (!rows.length) {
+      throw createError(404, 'parcel not found');
+    }
+    return rows[0];
+  }
+
+  function changeLoc() {
+    const query = ParcelModel.update({
+      set: {
+        current_loc: req.body.currentLocation,
+      },
+      where: {
+        id: +req.params.parcelID,
+      },
+    });
+    return db.query(query);
+  }
+
+  function sendMail() {
+    const { parcelID: id } = req.params;
+
+    let address = process.env.NODE_ENV === 'development'
+      ? `http://localhost:${process.env.PORT || 3000}` : process.env.ONLINE_HOST;
+
+    address += `/parcels?id=${id}`;
+
+    const options = {
+      to: user.email,
+      subject: `SendIT - [${id}] Parcel order update`,
+      html: `
+        <h3 style='text-align:center;color:#000;'>${id} - Parcel order update</h3>
+        <h4>Dear ${user.firstname}</h4><br>
+        <p>Your parcel with order id ${id} is on its way. It is currently in ${req.body.currentLocation}. To view more details about the parcel, click the link below.</p>
+        <br><a href=${address}>View order details</a>
+      `,
+    };
+
+    // send in the background
+    mailingService.sendMail(options)
+      .catch(() => {});
+  }
+
+  function finalize() {
+    sendSuccess(res, 200, [{
+      id: +req.params.parcelID,
+      currentLocation: req.body.currentLocation,
+      message: 'parcel current location updated',
     }]);
   }
 }

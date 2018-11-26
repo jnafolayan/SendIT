@@ -14,3 +14,11 @@ export const paramSchema = {
 export const changeDestSchema = {
   to: String,
 };
+
+export const changeStatusSchema = {
+  status: String,
+};
+
+export const changeLocationSchema = {
+  currentLocation: String, // geo-address
+};
