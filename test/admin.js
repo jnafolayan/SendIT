@@ -18,9 +18,6 @@ describe('Admin', () => {
         .post('/api/v1/auth/login')
         .send({ username, password })
         .end((err, res) => {
-          if (err) {
-            return done(err);
-          }
           expect(res.status).to.equal(200);
           expect(res.body).to.be.a('object');
 
@@ -42,10 +39,6 @@ describe('Admin', () => {
         .get('/api/v1/parcels')
         .set('x-access-token', token)
         .end((err, res) => {
-          if (err) {
-            return done(err);
-          }
-
           expect(res.status).to.equal(200);
           expect(res.body).to.be.a('object');
 
@@ -66,9 +59,6 @@ describe('Admin', () => {
         .set('x-access-token', token)
         .send({ status: 'transiting' })
         .end((err, res) => {
-          if (err) {
-            return done(err);
-          }
           expect(res.status).to.equal(200);
           expect(res.body).to.be.a('object');
 
@@ -90,9 +80,6 @@ describe('Admin', () => {
         .set('x-access-token', token)
         .send({ currentLocation: 'Block A, Ikeja bustop' })
         .end((err, res) => {
-          if (err) {
-            return done(err);
-          }
           expect(res.status).to.equal(200);
           expect(res.body).to.be.a('object');
 

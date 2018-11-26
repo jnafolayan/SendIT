@@ -1,6 +1,6 @@
 import db from '../server/db';
 
-describe('PostgreSQL', function() {
+describe('PostgreSQL', () => {
   it('connects to PostgreSQL server', done => {
     db.connect()
       .then(() => done())
