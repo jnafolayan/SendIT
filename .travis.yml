@@ -4,7 +4,7 @@ node_js:
   - "lts/*"
 cache: yarn
 env:
-  - DB=sendit PGUSER=postgres PGHOST=localhost PGPASSWORD=admin PGDATABASE=sendit PGPORT=5432
+  - DB=sendit
 services:
   - postgresql
 postgres:
@@ -12,11 +12,10 @@ postgres:
   database: sendit
   username: postgres
 before-script:
-  - psql -c "CREATE USER postgres WITH PASSWORD 'admin';" -U postgres
   - psql -c "CREATE DATABASE sendit;" -U postgres
   - psql -d sendit -f sql/createdb.sql -U postgres
   - psql -d sendit -f sql/create_admin.sql -U postgres
 script: npm run test
 # Send coverage data to Coveralls
 # after_script: "cat ./coverage/lcov.info | ./node_modules/coveralls/bin/coveralls.js"
-after_success: npm run coverage
+after_script: npm run coverage
