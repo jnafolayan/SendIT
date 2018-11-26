@@ -25,9 +25,6 @@ describe('User controller', () => {
         .post('/api/v1/auth/signup')
         .send(userInfo)
         .end((err, res) => {
-          if (err) {
-            return done(err);
-          }
           expect(res.status).to.equal(201);
           expect(res.body).to.be.a('object');
 
@@ -47,9 +44,6 @@ describe('User controller', () => {
         .post('/api/v1/auth/signup')
         .send(userInfo)
         .end((err, res) => {
-          if (err) {
-            return done(err);
-          }
           expect(res.status).to.equal(403);
           expect(res.body).to.be.a('object');
 
@@ -71,10 +65,6 @@ describe('User controller', () => {
           password: userInfo.password,
         })
         .end((err, res) => {
-          if (err) {
-            return done(err);
-          }
-
           expect(res.status).to.equal(200);
           expect(res.body).to.be.a('object');
 
@@ -96,9 +86,6 @@ describe('User controller', () => {
           password: 'baduser',
         })
         .end((err, res) => {
-          if (err) {
-            return done(err);
-          }
           expect(res.status).to.equal(404);
           expect(res.body).to.be.a('object');
 
@@ -117,10 +104,6 @@ describe('User controller', () => {
         .get(`/api/v1/users/${+userID}/parcels`)
         .set('x-access-token', token)
         .end((err, res) => {
-          if (err) {
-            return done(err);
-          }
-
           expect(res.status).to.equal(200);
           expect(res.body).to.be.a('object');
 
@@ -135,9 +118,6 @@ describe('User controller', () => {
         .get(`/api/v1/users/12345678/parcels`)
         .set('x-access-token', token)
         .end((err, res) => {
-          if (err) {
-            return done(err);
-          }
           expect(res.status).to.equal(403);
           expect(res.body).to.be.a('object');
 

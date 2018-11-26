@@ -25,9 +25,6 @@ describe('Parcel controller', () => {
         .post('/api/v1/auth/signup')
         .send(userInfo)
         .end((err, res) => {
-          if (err) {
-            return done(err);
-          }
           expect(res.status).to.equal(201);
           expect(res.body).to.be.a('object');
 
@@ -56,10 +53,6 @@ describe('Parcel controller', () => {
           to: 'Kaduna B'
         })
         .end((err, res) => {
-          if (err) {
-            return done(err);
-          }
-
           expect(res.status).to.equal(201);
           expect(res.body).to.be.a('object');
 
@@ -79,9 +72,7 @@ describe('Parcel controller', () => {
         .get('/api/v1/parcels')
         .set('x-access-token', token)
         .end((err, res) => {
-          if (err) {
-            return done(err);
-          }
+          
 
           expect(res.status).to.equal(401);
           expect(res.body).to.be.a('object');
@@ -100,9 +91,6 @@ describe('Parcel controller', () => {
         .get(`/api/v1/parcels/${parcelID}`)
         .set('x-access-token', token)
         .end((err, res) => {
-          if (err) {
-            return done(err);
-          }
           expect(res.status).to.equal(200);
           expect(res.body).to.be.a('object');
 
@@ -122,9 +110,7 @@ describe('Parcel controller', () => {
         .set('x-access-token', token)
         .send({ to: 'Junction' })
         .end((err, res) => {
-          if (err) {
-            return done(err);
-          }
+          
           expect(res.status).to.equal(200);
           expect(res.body).to.be.a('object');
 
@@ -145,9 +131,6 @@ describe('Parcel controller', () => {
         .set('x-access-token', token)
         .send({ status: 'transiting' })
         .end((err, res) => {
-          if (err) {
-            return done(err);
-          }
           expect(res.status).to.equal(401);
           expect(res.body).to.be.a('object');
 
@@ -166,9 +149,6 @@ describe('Parcel controller', () => {
         .set('x-access-token', token)
         .send({ currentLocation: 'Block A, Ikeja bustop' })
         .end((err, res) => {
-          if (err) {
-            return done(err);
-          }
           expect(res.status).to.equal(401);
           expect(res.body).to.be.a('object');
 
@@ -186,9 +166,6 @@ describe('Parcel controller', () => {
         .patch(`/api/v1/parcels/${parcelID}/cancel`)
         .set('x-access-token', token)
         .end((err, res) => {
-          if (err) {
-            return done(err);
-          }
           expect(res.status).to.equal(200);
           expect(res.body).to.be.a('object');
 
